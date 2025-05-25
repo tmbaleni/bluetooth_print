@@ -235,7 +235,22 @@
         }else if([@"image" isEqualToString:type]){
             NSData *decodeData = [[NSData alloc] initWithBase64EncodedString:content options:0];
             UIImage *image = [UIImage imageWithData:decodeData];
-            [command addOriginrastBitImage:image width:576];
+            CGFloat maxWidth = 100.0; 
+
+        // Calculate the target size while maintaining the original aspect ratio
+        CGSize originalSize = image.size;
+        CGFloat scaleFactor = maxWidth / originalSize.width;
+        CGSize targetSize = CGSizeMake(originalSize.width * scaleFactor, originalSize.height * scaleFactor);
+
+        // Create a renderer with the calculated target size
+        UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:targetSize];
+
+        // Render the image and get a new data representation
+        NSData *renderedImageData = [renderer JPEGDataWithCompressionQuality:1 actions:^(UIGraphicsImageRendererContext * _Nonnull context) {
+            [image drawInRect:CGRectMake(0, 0, targetSize.width, targetSize.height)];
+        }];
+        UIImage *resizedImage = [UIImage imageWithData:renderedImageData];
+        [command addOriginrastBitImage:resizedImage];
         }
         
         if([linefeed isEqualToNumber:@1]){
